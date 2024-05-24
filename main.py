@@ -6,12 +6,12 @@ import requests
 from datetime import datetime
 
 # Replace with your OpenWeatherMap API key
-API_KEY = "4175e12c9f9f885fdb5013c5c1d2bdb6"
+API_KEY = "YpW%2FVjNv55RDuJKf3n3Zz7HcnAz5ZDZuvfNKk3vCfhNw0oEUq%2Fz39qUbIWjvnR4bPZHciViKMSqMMUF2e0Ns6g%3D%3D"
 CITY_NAME = "Seoul"
 
 def get_weather():
     try:
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={CITY_NAME}&appid={API_KEY}&units=metric"
+        url = f"(문서보고 추가하기)"
         response = requests.get(url)
         weather_data = response.json()
 
