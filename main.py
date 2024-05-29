@@ -5,14 +5,17 @@ from tkcalendar import Calendar
 import requests
 from datetime import datetime
 
-# Replace with your OpenWeatherMap API key
-API_KEY = "YpW%2FVjNv55RDuJKf3n3Zz7HcnAz5ZDZuvfNKk3vCfhNw0oEUq%2Fz39qUbIWjvnR4bPZHciViKMSqMMUF2e0Ns6g%3D%3D"
+# 기상청 API키
+API_KEY = "YpW/VjNv55RDuJKf3n3Zz7HcnAz5ZDZuvfNKk3vCfhNw0oEUq/z39qUbIWjvnR4bPZHciViKMSqMMUF2e0Ns6g=="
 CITY_NAME = "Seoul"
 
 def get_weather():
     try:
-        url = f"(문서보고 추가하기)"
-        response = requests.get(url)
+        url = f"http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst"
+        params ={'serviceKey' : API_KEY, 'pageNo' : '1', 'numOfRows' : '10', 'dataType' : 'XML', 'stnId' : '108', 'tmFc' : '201310170600' }
+        
+        response = requests.get(url, params=params)
+        # print(response.content)
         weather_data = response.json()
 
         if weather_data["cod"] != 200:
