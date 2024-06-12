@@ -1,4 +1,3 @@
-# main.py
 import sys
 import requests
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
@@ -26,7 +25,7 @@ class MyApp(QMainWindow, Ui_MainWindow):
         selected_date = QDate.fromString(date_str, 'yyyy-MM-dd')
         current_date = QDate.currentDate()
         max_forecast_days = 15
-        
+
         try:
             if selected_date <= current_date:
                 url = f'http://api.weatherapi.com/v1/history.json?key={self.api_key}&q={city}&dt={date_str}'
@@ -34,10 +33,10 @@ class MyApp(QMainWindow, Ui_MainWindow):
                 url = f'http://api.weatherapi.com/v1/forecast.json?key={self.api_key}&q={city}&dt={date_str}'
             else:
                 return "Weather data is not available beyond 2 weeks in the future"
-            
+
             response = requests.get(url)
             response.raise_for_status()  # Raise an HTTPError for bad responses
-            
+
             data = response.json()
             if selected_date <= current_date:
                 weather = data['forecast']['forecastday'][0]['day']['condition']['text']
@@ -45,13 +44,36 @@ class MyApp(QMainWindow, Ui_MainWindow):
             else:
                 weather = data['forecast']['forecastday'][0]['day']['condition']['text']
                 temperature = data['forecast']['forecastday'][0]['day']['avgtemp_c']
-            return f"{weather}, {temperature}°C"
+            
+            weather_emoji = self.get_weather_emoji(weather)
+            return f"{weather_emoji} {weather}, {temperature}°C"
         except requests.RequestException as e:
             raise Exception("Network error: " + str(e))
         except (KeyError, IndexError) as e:
             raise Exception("Data parsing error: " + str(e))
         except Exception as e:
             raise Exception("An unexpected error occurred: " + str(e))
+
+    def get_weather_emoji(self, weather_description):
+        weather_description = weather_description.lower()
+        if 'sunny' in weather_description or 'clear' in weather_description:
+            return '☀️'
+        elif 'partly cloudy' in weather_description or 'cloudy' in weather_description:
+            return '⛅'
+        elif 'overcast' in weather_description:
+            return '☁️'
+        elif 'rain' in weather_description or 'shower' in weather_description:
+            return '🌧️'
+        elif 'snow' in weather_description:
+            return '❄️'
+        elif 'thunderstorm' in weather_description:
+            return '⛈️'
+        elif 'drizzle' in weather_description:
+            return '🌦️'
+        elif 'mist' in weather_description or 'fog' in weather_description or 'haze' in weather_description:
+            return '🌫️'
+        else:
+            return '🌈'
 
     def show_error_message(self, message):
         msg = QMessageBox()
