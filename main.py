@@ -1,87 +1,47 @@
 import sys
 import requests
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PyQt6.QtCore import QDate
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt6.QtCore import QDate, QTimer, QTime
 from calender_ui import Ui_MainWindow
 
 class MyApp(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.api_key = '68548aa7522943958ef20615241206'  # Replace with your WeatherAPI key
+        self.api_key = '41c136f4da01d88aca640b5fc695dd9f'  # Replace with your OpenWeatherMap API key
         self.calendarWidget.selectionChanged.connect(self.show_weather)
+
+        # 현재 시간을 표시할 레이블 추가
+        self.currentTimeLabel = QLabel(self)
+        self.currentTimeLabel.setGeometry(920, 20, 350, 100)  # 시간 표시 위치 및 크기 조정
+        self.currentTimeLabel.setStyleSheet("font-size: 36px; font-weight: bold; color: blue;")  # 스타일 조정
+
+        # 타이머를 사용하여 현재 시간 업데이트
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_current_time)
+        self.timer.start(1000)  # 1초마다 업데이트
 
     def show_weather(self):
         selected_date = self.calendarWidget.selectedDate()
         date_str = selected_date.toString('yyyy-MM-dd')
-        try:
-            weather_info = self.get_weather(date_str)
-            self.weatherLabel.setText(f"Weather on {date_str}: {weather_info}")
-        except Exception as e:
-            self.show_error_message(str(e))
+        weather_info = self.get_weather(date_str)
+        self.weatherLabel.setText(f"Weather on {date_str}: {weather_info}")
 
     def get_weather(self, date_str):
         city = 'Seoul'  # You can change this to any city
-        selected_date = QDate.fromString(date_str, 'yyyy-MM-dd')
-        current_date = QDate.currentDate()
-        max_forecast_days = 15
-
-        try:
-            if selected_date <= current_date:
-                url = f'http://api.weatherapi.com/v1/history.json?key={self.api_key}&q={city}&dt={date_str}'
-            elif selected_date <= current_date.addDays(max_forecast_days):
-                url = f'http://api.weatherapi.com/v1/forecast.json?key={self.api_key}&q={city}&dt={date_str}'
-            else:
-                return "Weather data is not available beyond 2 weeks in the future"
-
-            response = requests.get(url)
-            response.raise_for_status()  # Raise an HTTPError for bad responses
-
+        url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={self.api_key}&units=metric'
+        response = requests.get(url)
+        if response.status_code == 200:
             data = response.json()
-            if selected_date <= current_date:
-                weather = data['forecast']['forecastday'][0]['day']['condition']['text']
-                temperature = data['forecast']['forecastday'][0]['day']['avgtemp_c']
-            else:
-                weather = data['forecast']['forecastday'][0]['day']['condition']['text']
-                temperature = data['forecast']['forecastday'][0]['day']['avgtemp_c']
-            
-            weather_emoji = self.get_weather_emoji(weather)
-            return f"{weather_emoji} {weather}, {temperature}°C"
-        except requests.RequestException as e:
-            raise Exception("Network error: " + str(e))
-        except (KeyError, IndexError) as e:
-            raise Exception("Data parsing error: " + str(e))
-        except Exception as e:
-            raise Exception("An unexpected error occurred: " + str(e))
-
-    def get_weather_emoji(self, weather_description):
-        weather_description = weather_description.lower()
-        if 'sunny' in weather_description or 'clear' in weather_description:
-            return '☀️'
-        elif 'partly cloudy' in weather_description or 'cloudy' in weather_description:
-            return '⛅'
-        elif 'overcast' in weather_description:
-            return '☁️'
-        elif 'rain' in weather_description or 'shower' in weather_description:
-            return '🌧️'
-        elif 'snow' in weather_description:
-            return '❄️'
-        elif 'thunderstorm' in weather_description:
-            return '⛈️'
-        elif 'drizzle' in weather_description:
-            return '🌦️'
-        elif 'mist' in weather_description or 'fog' in weather_description or 'haze' in weather_description:
-            return '🌫️'
+            weather = data['weather'][0]['description']
+            temperature = data['main']['temp']
+            return f"{weather}, {temperature}°C"
         else:
-            return '🌈'
+            return "Error fetching weather data"
 
-    def show_error_message(self, message):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Icon.Critical)
-        msg.setText("Error")
-        msg.setInformativeText(message)
-        msg.setWindowTitle("Error")
-        msg.exec()
+    def update_current_time(self):
+        current_time = QTime.currentTime().toString('hh:mm:ss')
+        self.currentTimeLabel.setText(current_time)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
