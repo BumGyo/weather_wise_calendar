@@ -20,7 +20,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # 시계 레이블 생성 및 초기 시간 표시
         self.clockLabel = QtWidgets.QLabel(self.centralwidget)
-        self.clockLabel.setGeometry(QtCore.QRect(900, 20, 300, 100))  # 시계 위치 및 크기 조정
+        self.clockLabel.setGeometry(QtCore.QRect(900, 10, 300, 100))  # 시계 위치 및 크기 조정
         font = QtGui.QFont()
         font.setPointSize(30)
         self.clockLabel.setFont(font)
@@ -40,6 +40,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def show_weather(self):
         selected_date = self.calendarWidget.selectedDate()
         date_str = selected_date.toString('yyyy-MM-dd')
+        self.weatherLabel.setText(f"Weather on {date_str}: Loading...")
         threading.Thread(target=self.load_weather, args=(date_str,)).start()
 
     def load_weather(self, date_str):
