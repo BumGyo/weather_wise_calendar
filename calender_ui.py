@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 class Ui_MainWindow(object):
@@ -21,6 +19,11 @@ class Ui_MainWindow(object):
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
         self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 898, 148))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+
+        # Add weather label
+        self.weatherLabel = QtWidgets.QLabel(self.centralwidget)
+        self.weatherLabel.setGeometry(QtCore.QRect(150, 50, 500, 50))  # 위치 및 크기 조정
+        self.weatherLabel.setObjectName("weatherLabel")
 
         # To-Do List widget
         self.todoListWidget = QtWidgets.QListWidget(self.scrollAreaWidgetContents)
