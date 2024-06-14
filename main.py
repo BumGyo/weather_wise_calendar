@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt6.QtCore import QDate
 from calender_ui import Ui_MainWindow
 from datetime import datetime
+import threading
 
 class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -20,6 +21,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def show_weather(self):
         selected_date = self.calendarWidget.selectedDate()
         date_str = selected_date.toString('yyyy-MM-dd')
+        threading.Thread(target=self.load_weather, args=(date_str,)).start()
+
+    def load_weather(self, date_str):
         try:
             weather_info = self.get_weather(date_str)
             self.weatherLabel.setText(f"Weather on {date_str}: {weather_info}")
