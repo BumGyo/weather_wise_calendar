@@ -1,8 +1,8 @@
 import sys
 import requests
-from PyQt6 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore, QtGui
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PyQt6.QtCore import QDate
+from PyQt6.QtCore import QDate, QTimer, QDateTime
 from calender_ui import Ui_MainWindow
 from datetime import datetime
 import threading
@@ -17,6 +17,25 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.todo_lists = {}
         self.completed_todo_lists = {}
         self.todoListWidget.itemChanged.connect(self.handleItemChanged)
+
+        # 시계 레이블 생성 및 초기 시간 표시
+        self.clockLabel = QtWidgets.QLabel(self.centralwidget)
+        self.clockLabel.setGeometry(QtCore.QRect(900, 20, 300, 100))  # 시계 위치 및 크기 조정
+        font = QtGui.QFont()
+        font.setPointSize(30)
+        self.clockLabel.setFont(font)
+
+        # 초 단위로 시간 업데이트를 위한 QTimer 설정
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_time)  # 타임아웃 시그널에 update_time 슬롯 연결
+        self.timer.start(1000)  # 1000 밀리초 (1초) 마다 타이머가 타임아웃 이벤트 발생
+
+        self.update_time()  # 초기 시간 표시
+
+    def update_time(self):
+        current_time = QDateTime.currentDateTime()
+        display_text = current_time.toString('hh:mm:ss')
+        self.clockLabel.setText(display_text)  
 
     def show_weather(self):
         selected_date = self.calendarWidget.selectedDate()
