@@ -1,9 +1,10 @@
 import sys
+import json
 import requests
 from PyQt6 import QtWidgets, QtCore, QtGui
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt6.QtCore import QDate, QTimer, QDateTime
-from calender_ui import Ui_MainWindow
+from calender_ui import Ui_MainWindow  # Assuming you have calender_ui.py with Ui_MainWindow defined
 from datetime import datetime
 import threading
 
@@ -12,30 +13,31 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.api_key = '68548aa7522943958ef20615241206'  # Replace with your WeatherAPI key
+
+        # 연결 설정
         self.calendarWidget.selectionChanged.connect(self.show_weather)
-        
-        self.todo_lists = {}
-        self.completed_todo_lists = {}
         self.todoListWidget.itemChanged.connect(self.handleItemChanged)
 
-        # 시계 레이블 생성 및 초기 시간 표시
+        # 할 일 목록 초기화
+        self.todo_lists = {}
+        self.completed_todo_lists = {}
+
+        # 시계 레이블 설정
         self.clockLabel = QtWidgets.QLabel(self.centralwidget)
-        self.clockLabel.setGeometry(QtCore.QRect(900, 10, 300, 100))  # 시계 위치 및 크기 조정
+        self.clockLabel.setGeometry(QtCore.QRect(900, 10, 300, 100))
         font = QtGui.QFont()
         font.setPointSize(30)
         self.clockLabel.setFont(font)
+        self.clockLabel.setObjectName("clockLabel")
+        self.update_clock()
 
-        # 초 단위로 시간 업데이트를 위한 QTimer 설정
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_time)  # 타임아웃 시그널에 update_time 슬롯 연결
-        self.timer.start(1000)  # 1000 밀리초 (1초) 마다 타이머가 타임아웃 이벤트 발생
+        # JSON에서 할 일 목록 로드
+        self.load_todos()
 
-        self.update_time()  # 초기 시간 표시
-
-    def update_time(self):
-        current_time = QDateTime.currentDateTime()
-        display_text = current_time.toString('hh:mm:ss')
-        self.clockLabel.setText(display_text)  
+    def update_clock(self):
+        current_time = QDateTime.currentDateTime().toString("hh:mm:ss")
+        self.clockLabel.setText(current_time)
+        QTimer.singleShot(1000, self.update_clock)
 
     def show_weather(self):
         selected_date = self.calendarWidget.selectedDate()
@@ -51,7 +53,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.show_error_message(str(e))
 
     def get_weather(self, date_str):
-        city = 'Cheongju'  # You can change this to any city
+        city = 'Cheongju'  # 원하는 도시로 변경 가능
         selected_date = QDate.fromString(date_str, 'yyyy-MM-dd')
         current_date = QDate.currentDate()
         max_forecast_days = 15
@@ -62,10 +64,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             elif selected_date <= current_date.addDays(max_forecast_days):
                 url = f'http://api.weatherapi.com/v1/forecast.json?key={self.api_key}&q={city}&dt={date_str}'
             else:
-                return "Weather data is not available beyond 2 weeks in the future"
+                return "날씨 데이터는 2주를 초과해서 제공되지 않습니다."
 
             response = requests.get(url)
-            response.raise_for_status()  # Raise an HTTPError for bad responses
+            response.raise_for_status()  # HTTP 오류를 발생시킴
 
             data = response.json()
             if selected_date <= current_date:
@@ -78,11 +80,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             weather_emoji = self.get_weather_emoji(weather)
             return f"{weather_emoji} {weather}, {temperature}°C"
         except requests.RequestException as e:
-            raise Exception("Network error: " + str(e))
+            raise Exception("네트워크 오류: " + str(e))
         except (KeyError, IndexError) as e:
-            raise Exception("Data parsing error: " + str(e))
+            raise Exception("데이터 파싱 오류: " + str(e))
         except Exception as e:
-            raise Exception("An unexpected error occurred: " + str(e))
+            raise Exception("예상치 못한 오류 발생: " + str(e))
 
     def get_weather_emoji(self, weather_description):
         weather_description = weather_description.lower()
@@ -108,24 +110,49 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def show_error_message(self, message):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Icon.Critical)
-        msg.setText("Error")
+        msg.setText("오류")
         msg.setInformativeText(message)
-        msg.setWindowTitle("Error")
+        msg.setWindowTitle("오류")
         msg.exec()
+
+    def save_todos(self):
+        serializable_todo_lists = {
+            date: [(text, time, state.value) for text, time, state in todos]
+            for date, todos in self.todo_lists.items()
+        }
+        with open("todos.json", "w") as file:
+            json.dump(serializable_todo_lists, file)
+
+    def load_todos(self):
+        try:
+            with open("todos.json", "r") as file:
+                content = file.read().strip()
+                if content:
+                    serializable_todo_lists = json.loads(content)
+                    self.todo_lists = {
+                        date: [(text, time, QtCore.Qt.CheckState(state)) for text, time, state in todos]
+                        for date, todos in serializable_todo_lists.items()
+                    }
+                else:
+                    self.todo_lists = {}
+        except (FileNotFoundError, json.JSONDecodeError):
+            self.todo_lists = {}
+
+        self.loadTodoListForSelectedDate()
 
     def addItem(self):
         dialog = QtWidgets.QDialog()
-        dialog.setWindowTitle("Add To-Do Item")
+        dialog.setWindowTitle("할 일 추가")
         dialog.resize(300, 200)
 
         layout = QtWidgets.QVBoxLayout()
 
-        text_label = QtWidgets.QLabel("Enter a new to-do item:")
+        text_label = QtWidgets.QLabel("새로운 할 일을 입력하세요:")
         layout.addWidget(text_label)
         text_input = QtWidgets.QLineEdit()
         layout.addWidget(text_input)
 
-        time_label = QtWidgets.QLabel("Enter the time:")
+        time_label = QtWidgets.QLabel("시간을 입력하세요:")
         layout.addWidget(time_label)
         time_input = QtWidgets.QTimeEdit()
         time_input.setDisplayFormat("HH:mm")
@@ -150,7 +177,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 if selected_date not in self.todo_lists:
                     self.todo_lists[selected_date] = []
                 self.todo_lists[selected_date].append((item_text, item_time, QtCore.Qt.CheckState.Unchecked))
-                self.loadTodoListForSelectedDate()  # Update the displayed list
+                self.loadTodoListForSelectedDate()
+                self.save_todos()
 
     def removeItem(self):
         selected_items = self.todoListWidget.selectedItems()
@@ -164,29 +192,22 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                         self.todo_lists[selected_date].remove(todo)
                         break
         self.updateUncheckedTodoList()
+        self.save_todos()
 
     def handleItemChanged(self, item):
         font = item.font()
-        selected_date = self.calendarWidget.selectedDate().toString("yyyy-MM-dd")
         if item.checkState() == QtCore.Qt.CheckState.Checked:
             font.setStrikeOut(True)
-            # Save the completed item only if it's not already in the completed list
-            if selected_date not in self.completed_todo_lists:
-                self.completed_todo_lists[selected_date] = []
-            if item.text() not in self.completed_todo_lists[selected_date]:
-                self.completed_todo_lists[selected_date].append(item.text())
         else:
             font.setStrikeOut(False)
-            # Remove item from the completed list if it is unchecked
-            if selected_date in self.completed_todo_lists and item.text() in self.completed_todo_lists[selected_date]:
-                self.completed_todo_lists[selected_date].remove(item.text())
         item.setFont(font)
+        selected_date = self.calendarWidget.selectedDate().toString("yyyy-MM-dd")
         if selected_date in self.todo_lists:
             for i, todo in enumerate(self.todo_lists[selected_date]):
                 if f"{todo[0]} ({todo[1]})" == item.text():
                     self.todo_lists[selected_date][i] = (todo[0], todo[1], item.checkState())
         self.updateUncheckedTodoList()
-
+        self.save_todos()
     def loadTodoListForSelectedDate(self):
         selected_date = self.calendarWidget.selectedDate().toString("yyyy-MM-dd")
         self.todoListWidget.clear()
@@ -226,12 +247,6 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.yearComboBox.addItems([str(year) for year in range(2020, 2031)])
         self.monthComboBox = QtWidgets.QComboBox()
         self.monthComboBox.addItems([str(month).zfill(2) for month in range(1, 13)])
-
-        # Set current year and month as default
-        current_date = datetime.now()
-        self.yearComboBox.setCurrentText(str(current_date.year))
-        self.monthComboBox.setCurrentText(str(current_date.month).zfill(2))
-
         layout.addWidget(self.yearComboBox)
         layout.addWidget(self.monthComboBox)
 
@@ -248,10 +263,12 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         selected_year = self.yearComboBox.currentText()
         selected_month = self.monthComboBox.currentText()
         self.todoListTextEdit.clear()
-        for date, todos in self.completed_todo_lists.items():
+        for date, todos in self.todo_lists.items():
             if date.startswith(f"{selected_year}-{selected_month}"):
                 for todo in todos:
-                    self.todoListTextEdit.append(f"{todo} - {date}")
+                    if todo[2] == QtCore.Qt.CheckState.Checked:
+                        self.todoListTextEdit.append(f"{todo[0]} ({todo[1]}) - {date}")
+
 
     def showPendingTasks(self):
         selected_year = self.yearComboBox.currentText()
@@ -264,7 +281,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                         self.todoListTextEdit.append(f"{todo[0]} ({todo[1]}) - {date}")
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = MyApp()
-    window.show()
+    app = QApplication(sys.argv)
+    mainWindow = MyApp()
+    mainWindow.show()
     sys.exit(app.exec())

@@ -3,17 +3,17 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1400, 900)  # Ã¢ Å©±â¸¦ ´õ Å©°Ô Á¶Á¤
+        MainWindow.resize(1400, 900)  # Ã¢ Å©ï¿½â¸¦ ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.calendarWidget = QtWidgets.QCalendarWidget(self.centralwidget)
-        self.calendarWidget.setGeometry(QtCore.QRect(150, 100, 900, 600))  # Å©±â¸¦ ´õ Å©°Ô Á¶Á¤
+        self.calendarWidget.setGeometry(QtCore.QRect(150, 100, 900, 600))  # Å©ï¿½â¸¦ ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         self.calendarWidget.setObjectName("calendarWidget")
         self.graphicsView = QtWidgets.QGraphicsView(self.centralwidget)
-        self.graphicsView.setGeometry(QtCore.QRect(150, 0, 150, 100))  # Å©±â¸¦ ´õ Å©°Ô Á¶Á¤
+        self.graphicsView.setGeometry(QtCore.QRect(150, 0, 150, 100))  # Å©ï¿½â¸¦ ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         self.graphicsView.setObjectName("graphicsView")
         self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
-        self.scrollArea.setGeometry(QtCore.QRect(150, 720, 900, 150))  # Å©±â¸¦ ´õ Å©°Ô Á¶Á¤
+        self.scrollArea.setGeometry(QtCore.QRect(150, 720, 900, 150))  # Å©ï¿½â¸¦ ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
@@ -22,7 +22,7 @@ class Ui_MainWindow(object):
 
         # Add weather label
         self.weatherLabel = QtWidgets.QLabel(self.centralwidget)
-        self.weatherLabel.setGeometry(QtCore.QRect(150, 50, 500, 50))  # À§Ä¡ ¹× Å©±â Á¶Á¤
+        self.weatherLabel.setGeometry(QtCore.QRect(150, 50, 500, 50))  # ï¿½ï¿½Ä¡ ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         self.weatherLabel.setObjectName("weatherLabel")
 
         # To-Do List widget
@@ -53,11 +53,11 @@ class Ui_MainWindow(object):
 
         # Unchecked To-Do List widget
         self.uncheckedTodoListWidget = QtWidgets.QListWidget(self.centralwidget)
-        self.uncheckedTodoListWidget.setGeometry(QtCore.QRect(1100, 100, 250, 600))  # À§Ä¡ ¹× Å©±â Á¶Á¤
+        self.uncheckedTodoListWidget.setGeometry(QtCore.QRect(1100, 100, 250, 600))  # ï¿½ï¿½Ä¡ ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         self.uncheckedTodoListWidget.setObjectName("uncheckedTodoListWidget")
 
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1400, 21))  # Ã¢ Å©±â¿¡ ¸Â°Ô Á¶Á¤
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1400, 21))  # Ã¢ Å©ï¿½â¿¡ ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
